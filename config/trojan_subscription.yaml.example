@@ -1,0 +1,23 @@
+# Trojan node definitions for Mihomo proxy provider.
+# Copy to /opt/mihomo-monitor/trojan_subscription.yaml and fill in your actual nodes.
+# Each node MUST have a unique name — the name is used in API calls.
+# This file must NOT be committed to git.
+
+proxies:
+  - name: "node-sg-01"
+    type: trojan
+    server: sg-01.example.com
+    port: 443
+    password: "your-trojan-password"
+    udp: true
+    skip-cert-verify: false   # Set true only if your server uses a self-signed cert
+    sni: sg-01.example.com
+
+  - name: "node-hk-01"
+    type: trojan
+    server: hk-01.example.com
+    port: 443
+    password: "your-trojan-password"
+    udp: true
+    skip-cert-verify: false
+    sni: hk-01.example.com

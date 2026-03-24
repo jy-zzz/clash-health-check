@@ -1,0 +1,9 @@
+# Mihomo proxy health monitor — runs every 10 minutes
+# Deploy to: /etc/cron.d/mihomo-monitor
+# Permissions: chmod 644 /etc/cron.d/mihomo-monitor
+#
+# Option A: Run as root with system Python
+*/10 * * * * root /usr/bin/python3 /opt/mihomo-monitor/monitor.py >> /opt/mihomo-monitor/monitor.log 2>&1
+#
+# Option B: Run as dedicated user with venv (uncomment and adjust as needed)
+# */10 * * * * mihomo-monitor /opt/mihomo-monitor/venv/bin/python /opt/mihomo-monitor/monitor.py >> /opt/mihomo-monitor/monitor.log 2>&1

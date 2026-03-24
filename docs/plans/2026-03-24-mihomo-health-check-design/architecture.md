@@ -66,7 +66,7 @@ Two hosts, two components:
 mode: direct          # No routing via proxy groups; direct outbound connections only
 ipv6: true
 allow-lan: false      # API only accessible from localhost
-external-controller: 127.0.0.1:9090
+external-controller: 127.0.0.1:19090  # non-default; avoids conflict with any existing Clash/Mihomo instance
 secret: ""            # Set via monitor.py at startup by writing a fresh config
 
 proxy-providers:

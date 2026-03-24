@@ -21,7 +21,7 @@ Feature: Mihomo subprocess startup and readiness polling
   Background:
     Given the Mihomo binary is present at the configured path
     And a valid Mihomo configuration file exists at the configured path
-    And the Mihomo REST API is configured to listen on a known host and port
+    And the Mihomo REST API is configured to listen on 127.0.0.1:19090
 
   Scenario: Mihomo starts successfully and becomes ready within the timeout
     Given no Mihomo process is currently running

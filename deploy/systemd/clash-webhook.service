@@ -1,0 +1,40 @@
+[Unit]
+Description=Clash Health Check Webhook Server
+Documentation=https://github.com/yourname/clash-health-check
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/clash-health-check/webhook_server.py
+Restart=on-failure
+RestartSec=5s
+StartLimitBurst=3
+StartLimitInterval=60s
+
+# Secrets loaded from this file as environment variables.
+# Create at: /etc/clash-health-check/webhook.env (chmod 600, chown root:root)
+# The leading '-' means systemd will not fail if the file is absent.
+EnvironmentFile=-/etc/clash-health-check/webhook.env
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=clash-webhook
+
+# Security hardening — reduces blast radius even for a root process.
+# Root is required to run `systemctl restart trojan`.
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ReadWritePaths=/var/log/clash-health-check
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictRealtime=yes
+LockPersonality=yes
+# NOTE: MemoryDenyWriteExecute=yes is intentionally omitted.
+#       Python's interpreter requires W+X memory mappings and will crash with it enabled.
+
+[Install]
+WantedBy=multi-user.target

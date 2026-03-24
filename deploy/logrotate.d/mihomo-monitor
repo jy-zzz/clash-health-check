@@ -1,0 +1,18 @@
+# Log rotation for the Mihomo health monitor.
+# Deploy to: /etc/logrotate.d/mihomo-monitor
+#
+# NOTE: monitor.py uses logging.handlers.WatchedFileHandler which automatically
+# detects inode changes after rotation and reopens the file. No postrotate
+# signal is required.
+
+/opt/mihomo-monitor/monitor.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    dateext
+    dateformat -%Y%m%d
+    create 640 root root
+}

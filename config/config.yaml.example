@@ -1,0 +1,29 @@
+# Mihomo configuration for health monitoring
+# Copy to /opt/mihomo-monitor/config.yaml and fill in your MIHOMO_API_SECRET.
+# This file must NOT be committed to git — add config.yaml to .gitignore.
+#
+# IMPORTANT: Do NOT add port/socks-port/mixed-port/tun/redir-port.
+# Omitting them ensures Mihomo binds zero proxy listener ports.
+
+mode: direct       # Send health-check traffic directly, not via proxy groups
+ipv6: true
+allow-lan: false   # API accessible from localhost only
+
+# Non-default port — avoids conflict with any existing Clash/Mihomo instance on 9090
+external-controller: 127.0.0.1:19090
+secret: "CHANGE_ME"   # Replace with value of MIHOMO_API_SECRET from secrets.env
+
+proxy-providers:
+  trojan-nodes:
+    type: file
+    path: ./trojan_subscription.yaml   # Relative to -d workdir (/opt/mihomo-monitor)
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204   # Stable Google endpoint; always returns 204
+      interval: 300      # Background check interval in seconds (within each run)
+      timeout: 5000      # MILLISECONDS (not seconds — Mihomo quirk)
+      lazy: false        # Always test even when no proxy group is routing through this provider
+
+proxies: []
+proxy-groups: []
+rules: []

@@ -29,7 +29,7 @@ Mihomo (formerly Clash.Meta) is used as the health-check engine because it nativ
 ### Mihomo Instance
 
 5. Each cron invocation spawns a fresh Mihomo process; no instance persists between runs.
-6. The Mihomo config sets `mode: direct`, exposes no inbound proxy ports, and enables the external controller on `127.0.0.1:9090`.
+6. The Mihomo config sets `mode: direct`, exposes no inbound proxy ports, and enables the external controller on `127.0.0.1:19090`. Port `19090` is used instead of the default `9090` to avoid conflicts with any other Mihomo/Clash instance on any host.
 7. The Mihomo config references a `proxy-providers` entry pointing at `trojan_subscription.yaml`.
 8. The Mihomo process is unconditionally terminated (SIGTERM then SIGKILL) after results are collected, regardless of success or failure.
 
@@ -141,7 +141,7 @@ Trojan proxy server
 
 8.  KILL MIHOMO (via atexit / cleanup function)
     └─ proc.terminate() → wait(5s) → proc.kill() if still alive
-    └─ Port 9090 is now closed
+    └─ Port 19090 is now closed
 
 --- on trojan server ---
 
@@ -162,7 +162,7 @@ Trojan proxy server
 mode: direct
 ipv6: true
 allow-lan: false
-external-controller: 127.0.0.1:9090
+external-controller: 127.0.0.1:19090  # non-default port; avoids conflict with any existing Clash/Mihomo instance
 secret: "${MIHOMO_API_SECRET}"  # injected by monitor.py at runtime
 
 proxy-providers:
