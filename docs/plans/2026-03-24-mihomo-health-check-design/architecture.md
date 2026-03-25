@@ -132,7 +132,7 @@ All requests require the header: `Authorization: Bearer <MIHOMO_API_SECRET>`
 
 ```
 monitor.py
-├── Config dataclass (paths, thresholds, secrets)
+├── Config dataclass (paths, secrets)
 ├── MihomoProcess
 │   ├── start()              → Popen with start_new_session=True
 │   ├── wait_for_ready()     → deadline loop polling /version

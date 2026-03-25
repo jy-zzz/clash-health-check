@@ -38,7 +38,7 @@ Mihomo (formerly Clash.Meta) is used as the health-check engine because it nativ
 9. Written in Python using only the standard library (no third-party dependencies at runtime).
 10. Waits for the Mihomo external controller to become available before issuing requests.
 11. Queries the Mihomo API (authenticated with a shared secret) to retrieve health-check results.
-12. A node is **healthy** if `alive=true` and `delay < threshold`. A node is **unhealthy** otherwise.
+12. A node is **healthy** if `alive=true`, regardless of delay. A node is **unhealthy** only if `alive=false` or result collection failed. Delay is logged for observability only.
 13. Logs every run result (node name, status, delay) with ISO 8601 timestamps.
 14. Sends a webhook POST to the trojan server when the node is unhealthy.
 15. Exits non-zero only on infrastructure failures (binary not found, Mihomo never starts, config missing).
@@ -128,8 +128,8 @@ Trojan proxy server
     └─ GET /providers/proxies/{provider-name} → per-node {alive, delay, history}
 
 5.  EVALUATE NODES
-    └─ healthy: alive=true AND delay < threshold (default 2000ms)
-    └─ unhealthy: alive=false OR delay >= threshold
+    └─ healthy: alive=true (delay logged but not used as failure criterion)
+    └─ unhealthy: alive=false OR result collection failed
 
 6.  LOG RESULTS
     └─ ISO 8601 timestamp + node name + alive + delay + classification
@@ -189,7 +189,6 @@ rules: []
 | `WEBHOOK_SECRET` | `secrets.env` (monitor) + `webhook.env` (trojan server) | Must match on both sides |
 | `TROJAN_SERVER_HOST` | `monitor.py` config constant or env var | IP/hostname of trojan server |
 | `WEBHOOK_PORT` | Both hosts | Port the webhook server listens on |
-| `DELAY_THRESHOLD_MS` | `monitor.py` | Default: 2000ms |
 | Provider name in `config.yaml` | `config.yaml` | Must match the name used in API calls |
 | Cron schedule | `/etc/cron.d/mihomo-monitor` | `*/10 * * * *` |
 

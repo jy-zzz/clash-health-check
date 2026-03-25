@@ -130,19 +130,28 @@ Feature: Health check triggering and result collection via Mihomo REST API
 # FEATURE 3: Node Health Evaluation
 # =============================================================================
 
-Feature: Node health evaluation by alive flag and delay threshold
+Feature: Node health evaluation by alive flag only
   As the monitor process
   I want to evaluate collected health check data against defined criteria
   So that I can determine whether a proxy node requires a restart
 
+  # A node is healthy if alive=True, regardless of delay.
+  # Delay is logged for observability but is never used as a failure criterion.
+  # The network environment may be slow; any successful relay is acceptable.
+
   Background:
     Given a health check result has been collected for the configured node
-    And the monitor is configured with a maximum acceptable delay threshold in milliseconds
 
-  Scenario: Node is evaluated as healthy when alive and within delay threshold
+  Scenario: Node is evaluated as healthy when alive regardless of delay
     Given the health check result has "alive" set to true
     And the health check result has a delay of 150 ms
-    And the configured delay threshold is 2000 ms
+    When the monitor evaluates the node health
+    Then the node is classified as healthy
+    And no webhook notification is triggered
+
+  Scenario: Node is evaluated as healthy even with very high delay
+    Given the health check result has "alive" set to true
+    And the health check result has a delay of 9999 ms
     When the monitor evaluates the node health
     Then the node is classified as healthy
     And no webhook notification is triggered
@@ -154,34 +163,9 @@ Feature: Node health evaluation by alive flag and delay threshold
     Then the node is classified as unhealthy
     And the reason recorded is "node unreachable"
 
-  Scenario: Node is evaluated as unhealthy when delay exceeds threshold
-    Given the health check result has "alive" set to true
-    And the health check result has a delay of 3500 ms
-    And the configured delay threshold is 2000 ms
-    When the monitor evaluates the node health
-    Then the node is classified as unhealthy
-    And the reason recorded includes the actual delay and the threshold value
-
-  Scenario: Node is evaluated as unhealthy when delay equals threshold exactly
-    Given the health check result has "alive" set to true
-    And the health check result has a delay of 2000 ms
-    And the configured delay threshold is 2000 ms
-    When the monitor evaluates the node health
-    Then the node is classified as unhealthy
-    And the reason recorded includes the actual delay and the threshold value
-
-  Scenario: Node is evaluated as healthy when delay is one millisecond below threshold
-    Given the health check result has "alive" set to true
-    And the health check result has a delay of 1999 ms
-    And the configured delay threshold is 2000 ms
-    When the monitor evaluates the node health
-    Then the node is classified as healthy
-    And no webhook notification is triggered
-
   Scenario: Node is evaluated as unhealthy when alive is false regardless of delay value
     Given the health check result has "alive" set to false
     And the health check result has a delay of 100 ms
-    And the configured delay threshold is 2000 ms
     When the monitor evaluates the node health
     Then the node is classified as unhealthy
     And the reason recorded is "node unreachable"
@@ -565,7 +549,7 @@ Feature: Monitor log output format and content
     When the monitor completes evaluation
     Then a log entry is written stating the node is unhealthy
     And the log entry includes the reason for the unhealthy classification
-    And if the reason is high delay the log includes both the measured delay and the threshold
+    And the log entry includes the measured delay value for observability
 
   Scenario: Log records webhook notification dispatch
     Given the node was classified as unhealthy
