@@ -294,43 +294,36 @@ class TestHealthChecker(unittest.TestCase):
 
 
 class TestNodeEvaluator(unittest.TestCase):
-    """Tests for evaluate_node — healthy/unhealthy classification."""
+    """Tests for evaluate_node — healthy/unhealthy classification.
+
+    A node is healthy if alive=True, regardless of delay.
+    Delay is logged for observability but never used as a failure criterion.
+    """
 
     def _result(self, alive, delay, error=""):
         return monitor.NodeResult(name="test-node", alive=alive, delay=delay, error=error)
 
-    def test_healthy_when_alive_and_below_threshold(self):
-        ev = monitor.evaluate_node(self._result(True, 150), 2000)
+    def test_healthy_when_alive_regardless_of_delay(self):
+        ev = monitor.evaluate_node(self._result(True, 150))
         self.assertTrue(ev.healthy)
 
-    def test_healthy_when_delay_one_below_threshold(self):
-        ev = monitor.evaluate_node(self._result(True, 1999), 2000)
+    def test_healthy_when_alive_with_very_high_delay(self):
+        # High delay is NOT a failure — only alive=False matters
+        ev = monitor.evaluate_node(self._result(True, 9999))
         self.assertTrue(ev.healthy)
 
     def test_unhealthy_when_alive_false(self):
-        ev = monitor.evaluate_node(self._result(False, 0), 2000)
+        ev = monitor.evaluate_node(self._result(False, 0))
         self.assertFalse(ev.healthy)
         self.assertIn("unreachable", ev.reason)
 
-    def test_unhealthy_when_delay_equals_threshold(self):
-        # delay == threshold is unhealthy (boundary condition)
-        ev = monitor.evaluate_node(self._result(True, 2000), 2000)
-        self.assertFalse(ev.healthy)
-        self.assertIn("2000", ev.reason)
-
-    def test_unhealthy_when_delay_exceeds_threshold(self):
-        ev = monitor.evaluate_node(self._result(True, 3500), 2000)
-        self.assertFalse(ev.healthy)
-        self.assertIn("3500", ev.reason)
-        self.assertIn("2000", ev.reason)
-
     def test_unhealthy_when_alive_false_despite_low_delay(self):
-        ev = monitor.evaluate_node(self._result(False, 100), 2000)
+        ev = monitor.evaluate_node(self._result(False, 100))
         self.assertFalse(ev.healthy)
         self.assertIn("unreachable", ev.reason)
 
     def test_unhealthy_when_collection_failed(self):
-        ev = monitor.evaluate_node(self._result(False, 0, error="connection refused"), 2000)
+        ev = monitor.evaluate_node(self._result(False, 0, error="connection refused"))
         self.assertFalse(ev.healthy)
         self.assertIn("collection failed", ev.reason)
 

@@ -341,18 +341,17 @@ class EvalResult:
     reason: str = ""
 
 
-def evaluate_node(result: NodeResult, threshold_ms: int) -> EvalResult:
-    """Classify a node as healthy or unhealthy."""
+def evaluate_node(result: NodeResult) -> EvalResult:
+    """Classify a node as healthy or unhealthy.
+
+    A node is healthy if alive=True, regardless of delay.
+    Delay is logged for observability but not used as a failure criterion.
+    """
     if result.error:
         return EvalResult(node=result, healthy=False,
                           reason=f"collection failed: {result.error}")
     if not result.alive:
         return EvalResult(node=result, healthy=False, reason="node unreachable")
-    if result.delay >= threshold_ms:
-        return EvalResult(
-            node=result, healthy=False,
-            reason=f"delay {result.delay}ms >= threshold {threshold_ms}ms",
-        )
     return EvalResult(node=result, healthy=True)
 
 
@@ -428,7 +427,7 @@ def main() -> int:
     # Evaluate nodes
     unhealthy: list[EvalResult] = []
     for result in results:
-        ev = evaluate_node(result, config.delay_threshold_ms)
+        ev = evaluate_node(result)
         if ev.healthy:
             logging.info("node=%s alive=%s delay=%dms → HEALTHY",
                          result.name, result.alive, result.delay)
